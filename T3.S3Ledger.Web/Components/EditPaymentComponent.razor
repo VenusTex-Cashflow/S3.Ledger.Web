@@ -1,0 +1,115 @@
+﻿@page "/editpaymentcomponent/{Id:long}"
+@using static T3.S3Ledger.Web.Enums
+@using System.Linq;
+@inject HttpClient Http
+@inject NavigationManager navigation
+
+<style>
+    form .row {
+        margin-bottom: 16px;
+    }
+</style>
+
+@if (payment == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <RadzenTemplateForm Data="@payment" Submit="@((PaymentReceiptModel args) => { Submit(args).ConfigureAwait(true); })">
+        <div class="row">
+            <div class="col-md-8">
+                <RadzenFieldset Text="Payment Info">
+                    <div class="row">
+                        <div class="align-items-center d-flex col-md-4">
+                            <RadzenLabel Text="Customer" />
+                        </div>
+                        <div class="col-md-8">
+                            <RadzenDropDownDataGrid TValue="long" @bind-Value=payment.CustomerId Placeholder="Select customer" AllowFiltering="true" Data="@(customers)" TextProperty="FirstName" ValueProperty="Id" Style="width: 100%" Name="custChoosenId" SelectedItem="payment.Customer" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="align-items-center d-flex col-md-4">
+                            <RadzenLabel Text="Payment Reference No" />
+                        </div>
+                        <div class="col-md-8">
+                            <RadzenTextBox @bind-Value="payment.Reference" Disabled="false" Placeholder="Payment Reference" style="width: 100%;" Name="PaymentRefNo" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="align-items-center d-flex col-md-4">
+                            <RadzenLabel Text="Payment Date" />
+                        </div>
+                        <div class="col-md-8">
+                            <RadzenDatePicker @bind-Value="payment.PaidDate" Disabled="false" Placeholder="Date" style="width: 100%;" Name="PaymentDate" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="align-items-center d-flex col-md-4">
+                            <RadzenLabel Text="Amount" />
+                        </div>
+                        <div class="col-md-8">
+                            <RadzenNumeric @bind-Value="payment.AmountPaid" Disabled="false" style="width: 100%;" Name="Amount" />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="align-items-center d-flex col-md-4">
+                            <RadzenLabel Text="Payment method" />
+                        </div>
+                        <div class="col-md-8">
+                            <RadzenDropDown @bind-Value="payment.ModeOfPayment" Placeholder="Select payment mode" Data="@(Enum.GetValues(typeof(PayMode)).Cast<PayMode>().Select(t => new { Text = t, Value = t }))" style="width: 100%;" TextProperty="Text" ValueProperty="Value" Name="PaymentMode">
+                            </RadzenDropDown>
+                        </div>
+                    </div>
+                    @*<div class="row">
+                            <div class="align-items-center d-flex col-md-4">
+                                <RadzenLabel Text="Cheques Reference" />
+                            </div>
+                            <div class="col-md-8">
+                                <RadzenDropDownDataGrid TValue="long" @bind-Value=payment.CustomerId Placeholder="Select customer" AllowFiltering="true" Data="@(customers)" TextProperty="FirstName" ValueProperty="Id" Style="width: 100%" Name="custChoosenId" SelectedItem="payment.Customer" />
+                            </div>
+                        </div>*@
+                </RadzenFieldset>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-12 d-flex align-items-end justify-content-center" style="margin-top: 16px;">
+                <RadzenButton ButtonType="ButtonType.Submit" Icon="save" Text="Save" />
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Cancel" Click="@Cancel" />
+            </div>
+        </div>
+    </RadzenTemplateForm>
+}
+
+@code {
+    PaymentReceiptModel payment = new PaymentReceiptModel();
+    [Parameter] public long Id { get; set; }
+
+    IEnumerable<CustomerModel> customers;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        customers = await Http.GetFromJsonAsync<List<CustomerModel>>("/api/customer");
+        payment = await Http.GetFromJsonAsync<PaymentReceiptModel>("/api/paymentreceipt/" + Id);
+
+    }
+
+
+    private async Task Submit(PaymentReceiptModel arg)
+    {
+        arg.Customer = await Http.GetFromJsonAsync<CustomerModel>("/api/customer/" + arg.CustomerId);
+        await Http.PutAsJsonAsync<PaymentReceiptModel>("/api/paymentreceipt", arg);
+        navigation.NavigateTo("/paymentcomponent");
+    }
+
+    void Cancel()
+    {
+        navigation.NavigateTo("/paymentcomponent");
+    }
+
+    void OnChange(IEnumerable<CustomerModel> value)
+    {
+        var str = value is IEnumerable<CustomerModel> ? string.Join(", ", value.Select(a => a.FirstName).ToList()) : string.Empty;
+    }
+}

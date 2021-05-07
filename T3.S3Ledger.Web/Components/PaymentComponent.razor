@@ -1,0 +1,98 @@
+﻿@page "/paymentcomponent"
+@using static T3.S3Ledger.Web.Enums
+@inject HttpClient Http
+@inject NavigationManager navigation
+@inject DialogService dialog
+
+<h3>Payment Receipts List</h3>
+
+@if (paymentreceipts == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="Add" Click="@InsertRow" />
+    <RadzenGrid @ref="paymentsGrid" PagerPosition="PagerPosition.TopAndBottom" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="4"
+                AllowSorting="true" Data="@paymentreceipts" TItem="PaymentReceiptModel" ColumnWidth="100px" Context="payment">
+        <Columns>
+            <RadzenGridColumn TItem="PaymentReceiptModel" Property="Reference" Title="Reference" />
+            <RadzenGridColumn TItem="PaymentReceiptModel" Property="PaidDate" Title="Received Date">
+                <Template Context="payment">
+                    @String.Format("{0:ddd, MMM d, yyyy}", payment.PaidDate)
+                </Template>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="PaymentReceiptModel" Property="AmountPaid" Title="Amount Received">
+                <Template Context="payment">
+                    @String.Format("{0:0.00}", payment.AmountPaid)
+                </Template>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="PaymentReceiptModel" Property="ModeOfPayment" Title="Paid By">
+                <FilterTemplate>
+                    <RadzenDropDown @bind-Value="@currentPayMode" TextProperty="Text" ValueProperty="Value" Style="width:100%; font-size: small" Placeholder="Payment mode"
+                                    Change=@OnChange
+                                    Data="@(Enum.GetValues(typeof(PayMode)).Cast<PayMode>().Select(t => new { Text = $"{t}", Value = t }))" />
+                </FilterTemplate>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="PaymentReceiptModel" Context="payment" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px">
+                <Template Context="payment">
+                    <RadzenButton Icon="edit" Size="ButtonSize.Small" Click="@(args => EditRow(payment))">
+                    </RadzenButton>
+                </Template>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="PaymentReceiptModel" Context="payment" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="70px">
+                <Template Context="payment">
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Size="ButtonSize.Small"
+                                  Click="@(args => DeleteRow(payment))">
+                    </RadzenButton>
+                </Template>
+            </RadzenGridColumn>
+        </Columns>
+    </RadzenGrid>
+}
+
+@code {
+    RadzenGrid<PaymentReceiptModel> paymentsGrid;
+    List<PaymentReceiptModel> paymentreceipts;
+    PayMode currentPayMode;
+
+    protected override async Task OnInitializedAsync()
+    {
+        paymentreceipts = await Http.GetFromJsonAsync<List<PaymentReceiptModel>>("/api/paymentreceipt");
+    }
+
+    void InsertRow()
+    {
+        // ordersGrid.InsertRow(new Order());
+        navigation.NavigateTo("/addpaymentcomponent");
+    }
+
+    void DeleteRow(PaymentReceiptModel paymentReceipt)
+    {
+        var confirm = dialog.Confirm("Are you sure?", "Delete Customer", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
+        if (confirm.Result.HasValue && confirm.Result.Value)
+        {
+        }
+
+    }
+
+    void EditRow(PaymentReceiptModel payment)
+    {
+        navigation.NavigateTo("/editpaymentcomponent/" + payment.Id);
+    }
+
+    async Task OnChange()
+    {
+        paymentreceipts = await GetPayments();
+        if (currentPayMode.ToString() != PayMode.None.ToString())
+        {
+            paymentreceipts = paymentreceipts.Where(i => i.ModeOfPayment == currentPayMode).ToList<PaymentReceiptModel>();
+        }
+    }
+
+    async Task<List<PaymentReceiptModel>> GetPayments()
+    {
+        return await Http.GetFromJsonAsync<List<PaymentReceiptModel>>("/api/paymentreceipt");
+    }
+
+}

@@ -1,0 +1,141 @@
+﻿@page "/invoicecomponent"
+@using static T3.S3Ledger.Web.Enums
+@inject HttpClient Http
+@inject NavigationManager navigation
+@inject DialogService dialog
+
+<h3>Customer Invoices List</h3>
+
+@if (invoices == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="Add" Click="@InsertRow" />
+    <RadzenGrid @ref="invoicesGrid" PagerPosition="PagerPosition.TopAndBottom" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="4"
+                AllowSorting="true" Data="@invoices" TItem="InvoiceModel" ColumnWidth="100px" Context="invoice">
+        <Columns>
+            <RadzenGridColumn TItem="InvoiceModel" Property="ReferenceNumber" Title="Reference" />
+            <RadzenGridColumn TItem="InvoiceModel" Property="InvoiceDate" Title="Date">
+                <Template Context="invoice">
+                    @String.Format("{0:ddd, MMM d, yyyy}", invoice.InvoiceDate)
+                </Template>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="InvoiceModel" Property="Amount" Title="Invoice Amount">
+                <Template Context="invoice">
+                    @String.Format("{0:0.00}", invoice.Amount)
+                </Template>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="InvoiceModel" Property="InvoiceStatus" Title="Payment Status">
+                <FilterTemplate>
+                    <RadzenDropDown @bind-Value="@currentPayStatus" TextProperty="Text" ValueProperty="Value" Style="width:100%; font-size:small" Placeholder="Payment status"
+                                    Change=@OnChange_PS
+                                    Data="@(Enum.GetValues(typeof(InvoiceStatus)).Cast<InvoiceStatus>().Select(t => new { Text = $"{t}", Value = t }))" />
+                </FilterTemplate>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="InvoiceModel" Property="PaymentMethod" Title="Paid By">
+                <FilterTemplate>
+                    <RadzenDropDown @bind-Value="@currentPayMode" TextProperty="Text" ValueProperty="Value" Style="width:100%; font-size: small" Placeholder="Payment mode"
+                                    Change=@OnChange_PM
+                                    Data="@(Enum.GetValues(typeof(PayMode)).Cast<PayMode>().Select(t => new { Text = $"{t}", Value = t }))" />
+                </FilterTemplate>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="InvoiceModel" Property="GoodsDelivered" Title="Goods Delivered">
+                <Template Context="delivery">
+                    @String.Format("{0}", delivery.GoodsDelivered ? "Yes" : "No")
+                </Template>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="InvoiceModel" Context="invoice" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px">
+                <Template Context="invoice">
+                    <RadzenButton Icon="edit" Size="ButtonSize.Small" Click="@(args => EditRow(invoice))">
+                    </RadzenButton>
+                </Template>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="InvoiceModel" Context="invoice" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="70px">
+                <Template Context="invoice">
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Size="ButtonSize.Small"
+                                  Click="@(args => dialog.Confirm("Are you sure?", "Delete Invoice", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" }))">
+                    </RadzenButton>
+                </Template>
+            </RadzenGridColumn>
+        </Columns>
+    </RadzenGrid>
+}
+
+@code {
+    RadzenGrid<InvoiceModel> invoicesGrid;
+    List<InvoiceModel> invoices;
+    PayMode currentPayMode;
+    InvoiceStatus currentPayStatus;
+
+    protected override async Task OnInitializedAsync()
+    {
+        invoices = await GetInvoices();
+        dialog.OnClose += Close;
+
+    }
+
+    void InsertRow()
+    {
+        navigation.NavigateTo("/addinvoicecomponent");
+    }
+
+    void Close(dynamic result)
+    {
+
+        if (result)
+        {
+            // DeleteRow(customer);
+        }
+
+    }
+
+    void Open()
+    {
+
+
+    }
+
+    async Task<List<InvoiceModel>> GetInvoices()
+    {
+        return await Http.GetFromJsonAsync<List<InvoiceModel>>("/api/invoice");
+    }
+
+    void DeleteRow(InvoiceModel invoice)
+    {
+        if (invoices.Contains(invoice))
+        {
+            Http.DeleteAsync("/api/invoice/" + invoice.Id);
+            invoices.Remove(invoice);
+            invoicesGrid.Reload();
+        }
+        else
+        {
+            invoicesGrid.CancelEditRow(invoice);
+        }
+    }
+
+    void EditRow(InvoiceModel invoice)
+    {
+        navigation.NavigateTo("/editinvoicecomponent/" + invoice.Id);
+    }
+
+    async Task OnChange_PM()
+    {
+        invoices = await GetInvoices();
+        if (currentPayMode.ToString() != PayMode.None.ToString())
+        {
+            invoices = invoices.Where(i => i.PaymentMethod == currentPayMode).ToList<InvoiceModel>();
+        }
+    }
+
+    async Task OnChange_PS()
+    {
+        invoices = await GetInvoices();
+        if (currentPayStatus != InvoiceStatus.None)
+        {
+            invoices = invoices.Where(i => i.InvoiceStatus == currentPayStatus).ToList<InvoiceModel>();
+        }
+    }
+}

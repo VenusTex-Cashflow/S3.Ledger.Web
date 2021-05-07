@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121. 
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <_PublishTargetUrl>D:\iis-hosted\venustex</_PublishTargetUrl>
+    <History>True|2021-05-07T11:29:53.9193873Z;True|2021-05-06T23:14:56.7411778+05:30;True|2021-05-06T23:13:46.3810290+05:30;True|2021-05-06T21:56:07.8439507+05:30;True|2021-05-06T17:50:03.5136262+05:30;True|2021-05-06T06:06:27.6622080+05:30;True|2021-05-06T06:04:22.7460437+05:30;True|2021-05-05T01:05:54.0353809+05:30;</History>
+  </PropertyGroup>
+</Project>

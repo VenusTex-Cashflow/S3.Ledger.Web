@@ -1,0 +1,16 @@
+﻿@page "/signincomponent"
+@inject HttpClient Http
+@inject NavigationManager navigation
+
+<h3>SignInComponent</h3>
+
+@code {
+
+    private IList<UserModel> users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await Http.GetFromJsonAsync<List<UserModel>>("/api/user");
+    }
+
+}

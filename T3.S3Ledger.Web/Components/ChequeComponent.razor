@@ -1,0 +1,105 @@
+﻿@page "/chequecomponent"
+@inject HttpClient Http
+@inject NavigationManager navigation
+
+<h3>Cheques</h3>
+
+@if (cheques == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="Add" Click="@InsertRow" />
+    <RadzenGrid @ref="chequesGrid" PagerPosition="PagerPosition.TopAndBottom" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Advanced" AllowPaging="true" PageSize="4"
+                AllowSorting="true" Data="@cheques" TItem="ChequeModel" ColumnWidth="200px" AllowColumnResize="true" LogicalFilterOperator="LogicalFilterOperator.Or">
+        <Columns>
+            <RadzenGridColumn TItem="ChequeModel" Property="BankName" Title="Bank" />
+            <RadzenGridColumn TItem="ChequeModel" Property="Payee" Title="Payee Name" />
+            <RadzenGridColumn TItem="ChequeModel" Property="Date" Title="Date" />
+            <RadzenGridColumn TItem="ChequeModel" Property="Amount" Title="Amount" />
+            <RadzenGridColumn TItem="ChequeModel" Property="ChequeType" Title="Cheque Type" />
+            <RadzenGridColumn TItem="ChequeModel" Context="sampleBlazorModelsSampleOrder" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px">
+                <Template Context="order">
+                    <RadzenButton Icon="edit" Size="ButtonSize.Small" Click="@(args => EditRow(order))">
+                    </RadzenButton>
+                </Template>
+                <EditTemplate Context="order">
+                    <RadzenButton Icon="save" Size="ButtonSize.Small" Click="@((args) => SaveRow(order))">
+                    </RadzenButton>
+                    <RadzenButton Icon="cancel" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@((args) => CancelEdit(order))">
+                    </RadzenButton>
+                </EditTemplate>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="ChequeModel" Context="cheque" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="70px">
+                <Template Context="cheque">
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Size="ButtonSize.Small" Click="@(args => DeleteRow(cheque))">
+                    </RadzenButton>
+                </Template>
+                <EditTemplate Context="cheque">
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Size="ButtonSize.Small" Click="@(args => DeleteRow(cheque))">
+                    </RadzenButton>
+                </EditTemplate>
+            </RadzenGridColumn>
+        </Columns>
+    </RadzenGrid>
+}
+
+@code {
+    RadzenGrid<ChequeModel> chequesGrid;
+    private List<ChequeModel> cheques;
+
+    protected override async Task OnInitializedAsync()
+    {
+        cheques = await Http.GetFromJsonAsync<List<ChequeModel>>("/api/cheque");
+    }
+
+    void InsertRow()
+    {
+        // ordersGrid.InsertRow(new Order());
+        navigation.NavigateTo("/addchequecomponent");
+    }
+
+    void DeleteRow(ChequeModel cheque)
+    {
+        if (cheques.Contains(cheque))
+        {
+            // dbContext.Remove<Order>(order);
+
+            // For demo purposes only
+            cheques.Remove(cheque);
+
+            // For production
+            //dbContext.SaveChanges();
+
+            chequesGrid.Reload();
+        }
+        else
+        {
+            chequesGrid.CancelEditRow(cheque);
+        }
+    }
+
+    void EditRow(ChequeModel cheque)
+    {
+        chequesGrid.EditRow(cheque);
+    }
+
+    void CancelEdit(ChequeModel cheque)
+    {
+        chequesGrid.CancelEditRow(cheque);
+
+        // For production
+        //var orderEntry = dbContext.Entry(order);
+        //if (orderEntry.State == EntityState.Modified)
+        //{
+        //    orderEntry.CurrentValues.SetValues(orderEntry.OriginalValues);
+        //    orderEntry.State = EntityState.Unchanged;
+        //}
+    }
+
+    void SaveRow(ChequeModel cheque)
+    {
+        chequesGrid.EditRow(cheque);
+    }
+}
