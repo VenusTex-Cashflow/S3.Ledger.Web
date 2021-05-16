@@ -4,9 +4,16 @@
     {
         public enum CustomerType
         {
-            None,
-            Business,
-            Individual
+            Select,
+            BillToBill,
+            Normal
+        }
+
+        public enum PaymentType
+        {
+            Select,
+            BillToBill,
+            Normal
         }
 
         public enum Role
@@ -19,7 +26,7 @@
 
         public enum PayMode
         {
-            None,
+            Select,
             Cash,
             Cheque,
             Debit,
@@ -28,7 +35,7 @@
 
         public enum BusinessType
         {
-            None,
+            Select,
             Retail,
             Wholesale,
             Partner
@@ -36,7 +43,7 @@
 
         public enum InvoiceStatus
         {
-            None,
+            Select,
             Outstanding,
             PaymentReceived,
             Completed
@@ -44,16 +51,22 @@
 
         public enum ChequeType
         {
-            None,
+            Select,
             Cash,
             Account
         }
 
         public enum AddressType
         {
-            None,
+            Select,
             Billing,
             Shipping
+        }
+
+        public enum TransactionType
+        {
+            Cash,
+            Bill
         }
     }
 }

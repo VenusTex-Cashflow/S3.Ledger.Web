@@ -1,0 +1,12 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/T3.S3Ledger.Web/obj
+/T3.S3Ledger.Web/bin/Debug/net5.0
+/.vs/T3.S3Ledger.Web.Blazor
+/.vs/slnx.sqlite
+/.vs
+/t3.s3ledger.web.ux/.vs/t3.s3ledger.web.ux/DesignTimeBuild/.dtbcache.v2
+/T3.S3Ledger.Web/bin/Release/net5.0
+/T3.S3Ledger.Web/T3.S3Ledger.Web.csproj.user

@@ -14,14 +14,17 @@ namespace T3.S3Ledger.Web
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("#app");
 
-            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:8081") });
-            //builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:44377") });
+            //builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:8081") });
+            builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:44377") });
 
             // Radzen
             builder.Services.AddScoped<DialogService>();
             builder.Services.AddScoped<NotificationService>();
             builder.Services.AddScoped<TooltipService>();
             builder.Services.AddScoped<ContextMenuService>();
+
+            // state management
+            builder.Services.AddSingleton<StateContainer>();
 
             await builder.Build().RunAsync();
         }

@@ -4,7 +4,7 @@
 @inject NavigationManager navigation
 @inject DialogService dialog
 
-<h3>Payment Receipts List</h3>
+<h3>Cash Receipts</h3>
 
 @if (paymentreceipts == null)
 {
@@ -13,37 +13,42 @@
 else
 {
     <RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="Add" Click="@InsertRow" />
-    <RadzenGrid @ref="paymentsGrid" PagerPosition="PagerPosition.TopAndBottom" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="4"
-                AllowSorting="true" Data="@paymentreceipts" TItem="PaymentReceiptModel" ColumnWidth="100px" Context="payment">
+    <RadzenGrid @ref="paymentsGrid" PagerPosition="PagerPosition.TopAndBottom" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="12"
+                AllowSorting="true" Data="@paymentreceipts" TItem="PaymentReceiptModel" ColumnWidth="100px" Context="payment" RowSelect=@(args => OnRowClick(args))>
         <Columns>
-            <RadzenGridColumn TItem="PaymentReceiptModel" Property="Reference" Title="Reference" />
-            <RadzenGridColumn TItem="PaymentReceiptModel" Property="PaidDate" Title="Received Date">
+            <RadzenGridColumn TItem="PaymentReceiptModel" Title="Customer Name" Property="Customer.CustomerName">
+                <Template Context="payment">
+                    @payment.Customer?.CustomerName
+                </Template>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="PaymentReceiptModel" Property="PaidDate" Title="Cash Received Date">
                 <Template Context="payment">
                     @String.Format("{0:ddd, MMM d, yyyy}", payment.PaidDate)
                 </Template>
             </RadzenGridColumn>
-            <RadzenGridColumn TItem="PaymentReceiptModel" Property="AmountPaid" Title="Amount Received">
+            <RadzenGridColumn TItem="PaymentReceiptModel" Property="AmountPaid" Title="Amount">
                 <Template Context="payment">
-                    @String.Format("{0:0.00}", payment.AmountPaid)
+                    @String.Format("{0:#,##0.##}", payment.AmountPaid)
                 </Template>
             </RadzenGridColumn>
-            <RadzenGridColumn TItem="PaymentReceiptModel" Property="ModeOfPayment" Title="Paid By">
-                <FilterTemplate>
-                    <RadzenDropDown @bind-Value="@currentPayMode" TextProperty="Text" ValueProperty="Value" Style="width:100%; font-size: small" Placeholder="Payment mode"
-                                    Change=@OnChange
-                                    Data="@(Enum.GetValues(typeof(PayMode)).Cast<PayMode>().Select(t => new { Text = $"{t}", Value = t }))" />
-                </FilterTemplate>
-            </RadzenGridColumn>
-            <RadzenGridColumn TItem="PaymentReceiptModel" Context="payment" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px">
+            <RadzenGridColumn TItem="PaymentReceiptModel" Property="PaymentType" Title="Payment Type">
                 <Template Context="payment">
-                    <RadzenButton Icon="edit" Size="ButtonSize.Small" Click="@(args => EditRow(payment))">
-                    </RadzenButton>
+                    @payment.PaymentType.ToString()
+                    @*<RadzenDropDown @bind-Value="@currentPayMethod" TextProperty="Text" ValueProperty="Value" Style="width:100%; font-size: small" Placeholder="Select..."
+                        Change=@OnChange
+                        Data="@(Enum.GetValues(typeof(PaymentType)).Cast<PaymentType>().Select(t => new { Text = $"{t}", Value = t }))" />*@
                 </Template>
             </RadzenGridColumn>
-            <RadzenGridColumn TItem="PaymentReceiptModel" Context="payment" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="70px">
+            @*<RadzenGridColumn TItem="PaymentReceiptModel" Context="payment" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px">
+                    <Template Context="payment">
+                        <RadzenButton Icon="edit" Size="ButtonSize.Small" Click="@(args => EditRow(payment))">
+                        </RadzenButton>
+                    </Template>
+                </RadzenGridColumn>*@
+            <RadzenGridColumn TItem="PaymentReceiptModel" Context="payment" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="50px">
                 <Template Context="payment">
                     <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Size="ButtonSize.Small"
-                                  Click="@(args => DeleteRow(payment))">
+                                  Click="@(args => dialog.Confirm("Are you sure?", "Delete Cash Receipt", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" }))">
                     </RadzenButton>
                 </Template>
             </RadzenGridColumn>
@@ -54,26 +59,51 @@ else
 @code {
     RadzenGrid<PaymentReceiptModel> paymentsGrid;
     List<PaymentReceiptModel> paymentreceipts;
-    PayMode currentPayMode;
+    PaymentType currentPayMethod;
+    PaymentReceiptModel selectedCash;
 
     protected override async Task OnInitializedAsync()
     {
         paymentreceipts = await Http.GetFromJsonAsync<List<PaymentReceiptModel>>("/api/paymentreceipt");
+
+        foreach (var payment in paymentreceipts)
+        {
+            payment.Customer = await Http.GetFromJsonAsync<CustomerModel>("/api/customer/" + payment.CustomerId);
+        }
+        dialog.OnClose += Close;
     }
 
     void InsertRow()
     {
-        // ordersGrid.InsertRow(new Order());
         navigation.NavigateTo("/addpaymentcomponent");
     }
 
-    void DeleteRow(PaymentReceiptModel paymentReceipt)
+    protected async Task OnRowClick(PaymentReceiptModel args)
     {
-        var confirm = dialog.Confirm("Are you sure?", "Delete Customer", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" });
-        if (confirm.Result.HasValue && confirm.Result.Value)
-        {
-        }
 
+    }
+
+    async void Close(dynamic result)
+    {
+        if (result)
+        {
+            selectedCash = (PaymentReceiptModel)paymentsGrid.Value;
+            CustomerModel custUpdate;
+            if (paymentreceipts.Contains(selectedCash))
+            {
+                await Http.DeleteAsync("/api/paymentreceipt/" + selectedCash.Id);
+                paymentreceipts.Remove(selectedCash);
+                // update customer
+                custUpdate = await Http.GetFromJsonAsync<CustomerModel>("/api/customer/" + selectedCash.CustomerId);
+                custUpdate.TotalAmountSettled = custUpdate.TotalAmountSettled.HasValue ? custUpdate.TotalAmountSettled : 0;
+                custUpdate.TotalOutstandingAmount = custUpdate.TotalOutstandingAmount.HasValue ? custUpdate.TotalOutstandingAmount : 0;
+                custUpdate.TotalAmountSettled -= selectedCash.AmountPaid;
+                custUpdate.TotalOutstandingAmount += custUpdate.TotalOutstandingAmount < 0 ? 0 : custUpdate.TotalOutstandingAmount;
+                await Http.PutAsJsonAsync<CustomerModel>("/api/customer", custUpdate);
+
+                await paymentsGrid.Reload();
+            }
+        }
     }
 
     void EditRow(PaymentReceiptModel payment)
@@ -83,11 +113,11 @@ else
 
     async Task OnChange()
     {
-        paymentreceipts = await GetPayments();
-        if (currentPayMode.ToString() != PayMode.None.ToString())
-        {
-            paymentreceipts = paymentreceipts.Where(i => i.ModeOfPayment == currentPayMode).ToList<PaymentReceiptModel>();
-        }
+        //paymentreceipts = await GetPayments();
+        //if (currentPayMode.ToString() != PayMode.None.ToString())
+        //{
+        //    paymentreceipts = paymentreceipts.Where(i => i.ModeOfPayment == currentPayMode).ToList<PaymentReceiptModel>();
+        //}
     }
 
     async Task<List<PaymentReceiptModel>> GetPayments()

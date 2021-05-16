@@ -1,5 +1,115 @@
 ﻿@page "/"
+@inject HttpClient Http
+@inject NotificationService NotificationService
+@inject StateContainer StateContainer
+@implements IDisposable
 
-<h1>VenusTex (Pvt) Ltd.</h1>
 
-Customers Ledger Application
+<h1>VenusTex Ltd.</h1>
+<h4>Customers payment overdue by 2 months</h4>
+
+@if (customers == null)
+{
+    <p><em>No overdue customers</em></p>
+}
+else
+{
+    <RadzenDataList WrapItems="true" AllowPaging="true" Data="@customers" TItem="CustomerModel">
+        <Template Context="customer">
+            <RadzenCard Style="width:300px;">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div>Customer Name:</div>
+                        <b>@customer.CustomerName</b>
+                    </div>
+                    <div class="col-md-6">
+                        <div>Total Oustanding:</div>
+                        <b>@String.Format("{0:#,##0.##}", customer.TotalOutstandingAmount)</b>
+                        <div style="margin-top:20px">Last Paid Date:</div>
+                        <b>@String.Format("{0:ddd, MMM d, yyyy}", customer.LasyPaymentDate)</b>
+                    </div>
+                </div>
+
+            </RadzenCard>
+        </Template>
+    </RadzenDataList>
+}
+
+@code {
+    private List<CustomerModel> customers;
+    private List<CustomerModel> overdueCustomers;
+    DateTime lastPayDate;
+    DateTime lastBillDate;
+
+
+    public void Dispose()
+    {
+        StateContainer.OnChange -= StateHasChanged;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        StateContainer.OnChange += StateHasChanged;
+        await GetOverdueCustomers();
+
+    }
+
+    async Task<List<CustomerModel>> GetOverdueCustomers()
+    {
+        try
+        {
+            customers = await Http.GetFromJsonAsync<List<CustomerModel>>("/api/customer");
+            overdueCustomers = new List<CustomerModel>();
+            foreach (var cust in customers)
+            {
+                lastBillDate = DateTime.Today.Date;
+                lastPayDate = DateTime.Today.Date;
+                if (cust.Invoices.Any())
+                {
+                    lastBillDate = cust.Invoices.OrderByDescending(i => i.InvoiceDate).FirstOrDefault().InvoiceDate;
+                }
+                if (cust.PaymentReceipts.Any())
+                {
+                    lastPayDate = cust.PaymentReceipts.OrderByDescending(p => p.PaidDate).FirstOrDefault().PaidDate;
+                }
+
+                int dueDays = (DateTime.Today.Date - lastBillDate).Days;
+                dueDays = dueDays < 0 ? 0 : dueDays;
+
+                int daysfromLastPayment = (DateTime.Today.Date - lastPayDate).Days;
+                daysfromLastPayment = daysfromLastPayment < 0 ? 0 : daysfromLastPayment;
+
+                if (dueDays >= 60 && cust.TotalOutstandingAmount > 0 && daysfromLastPayment >= 60)
+                {
+                    cust.LasyPaymentDate = lastPayDate;
+                    overdueCustomers.Add(cust);
+                }
+
+            }
+
+
+            if (overdueCustomers.Any())
+            {
+                if (string.IsNullOrEmpty(StateContainer.Property))
+                {
+                    var message = new NotificationMessage() { Severity = NotificationSeverity.Warning, Summary = "Overdue customers", Detail = "Click Home for details", Duration = 10000 };
+                    NotificationService.Notify(message);
+                }
+
+                StateContainer.Property = "Notified";
+            }
+
+            customers = overdueCustomers;
+
+            return await Task.Run(() => customers);
+
+        }
+        catch (Exception ex)
+        {
+
+        }
+
+        return null;
+
+    }
+}

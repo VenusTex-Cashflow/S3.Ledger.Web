@@ -1,4 +1,5 @@
 ﻿@page "/customercomponent"
+@using static T3.S3Ledger.Web.Enums
 @inject HttpClient Http
 @inject NavigationManager navigation
 @inject DialogService dialog
@@ -12,63 +13,88 @@
 else
 {
     <RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="Add" Click="@InsertRow" />
-    <RadzenGrid @ref="customersGrid" PagerPosition="PagerPosition.TopAndBottom" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="4"
-                AllowSorting="true" Data="@customers" TItem="CustomerModel" ColumnWidth="100px">
+    <RadzenGrid @ref="customersGrid" PagerPosition="PagerPosition.Top" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="12" AllowSorting="true" Data="@customers" RowSelect=@(args => OnRowClick(args)) TItem="CustomerModel">
         <Columns>
-            <RadzenGridColumn TItem="CustomerModel" Property="LastName" Title="Last Name" />
-            <RadzenGridColumn TItem="CustomerModel" Property="FirstName" Title="First Name" />
-            <RadzenGridColumn TItem="CustomerModel" Property="CompanyName" Title="Company" />
-            <RadzenGridColumn TItem="CustomerModel" Property="MobileNumber" Title="Mobile" />
-            <RadzenGridColumn TItem="CustomerModel" Context="customer" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px">
+            <RadzenGridColumn TItem="CustomerModel" Property="CustomerType" Title="Customer Type" Width="100px">
+                <FilterTemplate>
+                    <RadzenDropDown @bind-Value="@currentCustType" TextProperty="Text" ValueProperty="Value" Style="width:100%; font-size:small" Change=@OnChange
+                                    Data="@(Enum.GetValues(typeof(CustomerType)).Cast<CustomerType>().Select(t => new { Text = $"{t}", Value = t }))" />
+                </FilterTemplate>
+            </RadzenGridColumn>
+            <RadzenGridColumn TItem="CustomerModel" Property="CustomerName" Title="Customer Name" Width="150px" />
+            <RadzenGridColumn TItem="CustomerModel" Context="customer" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="50px">
                 <Template Context="customer">
                     <RadzenButton Icon="edit" Size="ButtonSize.Small" Click=@(args => EditRow(customer.Id))>
                     </RadzenButton>
                 </Template>
             </RadzenGridColumn>
-            <RadzenGridColumn TItem="CustomerModel" Context="customer" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="70px">
+            <RadzenGridColumn TItem="CustomerModel" Context="customer" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="50px">
                 <Template Context="customer">
-                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Size="ButtonSize.Small" Click=@(args => DeleteRow(customer))>
-                    </RadzenButton>
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Size="ButtonSize.Small" Click=@(args => dialog.Confirm("Are you sure?", "Delete Customer", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" })) />
                 </Template>
             </RadzenGridColumn>
         </Columns>
     </RadzenGrid>
+
 }
 
 @code {
     RadzenGrid<CustomerModel> customersGrid;
-    private List<CustomerModel> customers;
+    List<CustomerModel> customers;
+    CustomerType currentCustType;
+    CustomerModel selectedCustomer;
+
+
+    protected async Task OnRowClick(CustomerModel args)
+    {
+
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        customers = await Http.GetFromJsonAsync<List<CustomerModel>>("/api/customer");
+        customers = await GetCustomers();
+        dialog.OnClose += Close;
     }
+
+
+    void Close(dynamic result)
+    {
+        if (result)
+        {
+            selectedCustomer = (CustomerModel)customersGrid.Value;
+            if (customers.Contains(selectedCustomer))
+            {
+                Http.DeleteAsync("/api/customer/" + selectedCustomer.Id);
+                customers.Remove(selectedCustomer);
+                customersGrid.Reload();
+            }
+        }
+    }
+
 
     void InsertRow()
     {
         navigation.NavigateTo("/addcustomercomponent");
     }
 
-
-    void DeleteRow(CustomerModel customer)
+    async Task<List<CustomerModel>> GetCustomers()
     {
-        var confirm = dialog.Confirm("Are you sure?", "Delete Customer", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" }).Result;
-        if (confirm.Value)
-        {
-            if (customers.Contains(customer))
-            {
-                Http.DeleteAsync("/api/customer/" + customer.Id);
-                customers.Remove(customer);
-                customersGrid.Reload();
-            }
-        }
-
-        customersGrid.CancelEditRow(customer);
-
+        return await Http.GetFromJsonAsync<List<CustomerModel>>("/api/customer");
     }
+
+
 
     void EditRow(long Id)
     {
         navigation.NavigateTo("/editcustomercomponent/" + Id);
+    }
+
+    async Task OnChange()
+    {
+        customers = await GetCustomers();
+        if (currentCustType.ToString() != CustomerType.Select.ToString())
+        {
+            customers = customers.Where(i => i.CustomerType == currentCustType).ToList<CustomerModel>();
+        }
     }
 }

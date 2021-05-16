@@ -18,140 +18,22 @@ else
     <RadzenTemplateForm Data="@customer" Submit="@((CustomerModel args) => { Submit(args).ConfigureAwait(true); })">
         <div class="row">
             <div class="col-md-6">
-                <RadzenFieldset Text="Customer Info">
+                <RadzenFieldset Text="Customer Detail">
                     <div class="row">
                         <div class="align-items-center d-flex col-md-4">
                             <RadzenLabel Text="Customer Type" />
                         </div>
                         <div class="col-md-8">
-                            <RadzenDropDown @bind-Value="customer.CustomerType" Placeholder="Select Customer Type" Data="@(Enum.GetValues(typeof(CustomerType)).Cast<CustomerType>().Select(t => new { Text = t, Value = t }))" style="width: 100%;" TextProperty="Text" ValueProperty="Value" Name="CustomerType">
+                            <RadzenDropDown @bind-Value="customer.CustomerType" Placeholder="Select..." Data="@(Enum.GetValues(typeof(CustomerType)).Cast<CustomerType>().Select(t => new { Text = t, Value = t }))" style="width: 100%;" TextProperty="Text" ValueProperty="Value" Name="CustomerType">
                             </RadzenDropDown>
                         </div>
                     </div>
                     <div class="row">
                         <div class="align-items-center d-flex col-md-4">
-                            <RadzenLabel Text="First Name" />
+                            <RadzenLabel Text="Customer Name" />
                         </div>
                         <div class="col-md-8">
-                            <RadzenTextBox @bind-Value="customer.FirstName" Disabled="false" Placeholder="First Name" style="width: 100%;" Name="FirstName" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="align-items-center d-flex col-md-4">
-                            <RadzenLabel Text="Middle Name" />
-                        </div>
-                        <div class="col-md-8">
-                            <RadzenTextBox @bind-Value="customer.MiddleName" Disabled="false" Placeholder="Middle Name" style="width: 100%;" Name="MiddleName" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="align-items-center d-flex col-md-4">
-                            <RadzenLabel Text="Last Name" />
-                        </div>
-                        <div class="col-md-8">
-                            <RadzenTextBox @bind-Value="customer.LastName" Disabled="false" Placeholder="Last Name" style="width: 100%;" Name="LastName" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="align-items-center d-flex col-md-4">
-                            <RadzenLabel Text="Company Name" />
-                        </div>
-                        <div class="col-md-8">
-                            <RadzenTextBox @bind-Value="customer.CompanyName" Disabled="false" Placeholder="Company Name" style="width: 100%;" Name="CompanyName" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="align-items-center d-flex col-md-4">
-                            <RadzenLabel Text="Company Code" />
-                        </div>
-                        <div class="col-md-8">
-                            <RadzenTextBox @bind-Value="customer.CompanyCode" Disabled="false" Placeholder="Company Code" style="width: 100%;" Name="CompanyCode" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="align-items-center d-flex col-md-4">
-                            <RadzenLabel Text="Business Type" />
-                        </div>
-                        <div class="col-md-8">
-                            <RadzenDropDown @bind-Value="customer.BusinessType" Placeholder="Select Business Type" Data="@(Enum.GetValues(typeof(BusinessType)).Cast<BusinessType>().Select(t => new { Text = t, Value = t }))" style="width: 100%;" TextProperty="Text" ValueProperty="Value" Name="BusinessType">
-                            </RadzenDropDown>
-                        </div>
-                    </div>
-                </RadzenFieldset>
-            </div>
-            <div class="col-md-6">
-                <RadzenFieldset Text="Address Info">
-                    <div class="row">
-                        <div class="align-items-center d-flex col-md-4">
-                            <RadzenLabel Text="Address 1" />
-                        </div>
-                        <div class="col-md-8">
-                            <RadzenTextBox @bind-Value="address.Address1" Disabled="false" Placeholder="Address 1" style="width: 100%;" Name="Address1" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="align-items-center d-flex col-md-4">
-                            <RadzenLabel Text="Address 2" />
-                        </div>
-                        <div class="col-md-8">
-                            <RadzenTextBox @bind-Value="address.Address2" Disabled="false" Placeholder="Address 2" style="width: 100%;" Name="Address2" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="align-items-center d-flex col-md-4">
-                            <RadzenLabel Text="Address 3" />
-                        </div>
-                        <div class="col-md-8">
-                            <RadzenTextBox @bind-Value="address.Address3" Disabled="false" Placeholder="Address 3" style="width: 100%;" Name="Address3" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="align-items-center d-flex col-md-2">
-                            <RadzenLabel Text="City" />
-                        </div>
-                        <div class="col-md-3">
-                            <RadzenTextBox @bind-Value="address.City" Disabled="false" Placeholder="City" style="width: 100%;" Name="City" />
-                        </div>
-                        <div class="align-items-center d-flex col-md-2">
-                            <RadzenLabel Text="Country" />
-                        </div>
-                        <div class="col-md-5">
-                            <RadzenDropDown @bind-Value="@countries.ToList().FirstOrDefault().Id" Placeholder="Select Country" Data="@countries" style="width: 100%;" TextProperty="Name" ValueProperty="Id" Name="Country">
-                            </RadzenDropDown>
-                        </div>
-                    </div>
-                </RadzenFieldset>
-                <RadzenFieldset Text="Contact Info">
-                    <div class="row">
-                        <div class="align-items-center d-flex col-md-4">
-                            <RadzenLabel Text="Mobile" />
-                        </div>
-                        <div class="col-md-8">
-                            <RadzenTextBox @bind-Value="customer.MobileNumber" Disabled="false" Placeholder="Mobile" style="width: 100%;" Name="MobileNumber" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="align-items-center d-flex col-md-4">
-                            <RadzenLabel Text="Other Contact" />
-                        </div>
-                        <div class="col-md-8">
-                            <RadzenTextBox @bind-Value="customer.OtherContactNumber" Disabled="false" Placeholder="Other Contact" style="width: 100%;" Name="OtherContactNumber" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="align-items-center d-flex col-md-4">
-                            <RadzenLabel Text="Office Phone" />
-                        </div>
-                        <div class="col-md-8">
-                            <RadzenTextBox @bind-Value="customer.OfficeNumber" Disabled="false" Placeholder="Office Phone" style="width: 100%;" Name="OfficeNumber" />
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="align-items-center d-flex col-md-4">
-                            <RadzenLabel Text="Email" />
-                        </div>
-                        <div class="col-md-8">
-                            <RadzenTextBox @bind-Value="customer.Email" Disabled="false" Placeholder="Email" style="width: 100%;" Name="Email" />
+                            <RadzenTextBox @bind-Value="customer.CustomerName" Disabled="false" Placeholder="Customer Name" style="width: 100%;" Name="CustomerName" />
                         </div>
                     </div>
                 </RadzenFieldset>
@@ -170,9 +52,6 @@ else
     private CustomerModel customer = new CustomerModel()
     {
         CreatedDate = DateTime.Today.Date,
-        Addresses = new List<AddressModel>(),
-        CompanyCode = string.Empty,
-        CompanyName = string.Empty,
         OrganizationId = 1
 
     };
@@ -185,15 +64,11 @@ else
         new CountryModel() { Id = 200, Name = "Sri Lanka" }
     };
 
-    //protected override async Task OnInitializedAsync()
-    //{
-    //    countries = await Http.GetFromJsonAsync<List<CountryModel>>("/api/country");
-    //}
 
     private async Task Submit(CustomerModel arg)
     {
         address.CountryId = 200;
-        arg.Addresses.Add(address);
+
         await Http.PostAsJsonAsync<CustomerModel>("/api/customer", arg);
         navigation.NavigateTo("/customercomponent");
     }

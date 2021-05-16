@@ -10,8 +10,8 @@ namespace T3.S3Ledger.Web.Models
         public string Address3 { get; set; }
         public string City { get; set; }
         public string State { get; set; }
-        public int CountryId { get; set; }
-        public AddressType AddressType { get; set; } = AddressType.Billing;
-        public long CustomerId { get; set; }
+        public int? CountryId { get; set; }
+        public AddressType? AddressType { get; set; }
+        public long? CustomerId { get; set; }
     }
 }

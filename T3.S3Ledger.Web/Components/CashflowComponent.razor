@@ -1,0 +1,190 @@
+﻿@page "/cashflowcomponent"
+@using static T3.S3Ledger.Web.Enums
+@inject HttpClient Http
+@inject NavigationManager navigation
+
+<h3>Customer Details</h3>
+
+@if (customers == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <div class="row">
+                <RadzenGrid @ref="customersGrid" ColumnWidth="200px" PagerPosition="PagerPosition.Top" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowSorting="true" Data="@customers" TItem="CustomerModel" @bind-Value="@customer" RowSelect=@(args => OnRowClick(args))>
+                    <Columns>
+                        <RadzenGridColumn TItem="CustomerModel" Property="CustomerName" Title="Customer Name" Width="100px">
+                            <Template Context="customer">
+                                @customer.CustomerName
+                            </Template>
+                        </RadzenGridColumn>
+                        <RadzenGridColumn TItem="CustomerModel" Property="TotalOutstandingAmount" Title="Total Outstanding" Width="150px">
+                            <Template Context="customer">
+                                <b>@String.Format("{0:#,##0.##}", customer.TotalOutstandingAmount)</b>
+                            </Template>
+                        </RadzenGridColumn>
+                    </Columns>
+                </RadzenGrid>
+            </div>
+        </div>
+        <div class="col-md-8">
+            <RadzenCard Style="margin-bottom:20px">
+                <div class="row">
+                    <div class="col-md-6">
+                        Customer Name:
+                        <br />
+                        <b>@customer.CustomerName</b>
+                    </div>
+                    <div class="col-md-3">
+                        Total Bills:
+                        <br />
+                        <b>@String.Format("{0:#,##0.#0}", customer.TotalInvoicedAmount)</b>
+                    </div>
+                    <div class="col-md-3">
+                        Total Cash:
+                        <br />
+                        <b>@String.Format("{0:#,##0.#0}", customer.TotalAmountSettled) </b>
+                    </div>
+                </div>
+
+            </RadzenCard>
+            <RadzenTabs>
+                <Tabs>
+                    <RadzenTabsItem Text="Cash Flow">
+                        <RadzenGrid AllowPaging="true" AllowSorting="true" Data="@customer.CashFlows" TItem="Cashflow">
+                            <Columns>
+                                <RadzenGridColumn TItem="Cashflow" Property="TransactionDate" Title="Date">
+                                    <Template Context="cashflow">
+                                        @String.Format("{0:ddd, MMM d, yyyy}", cashflow.TransactionDate)
+                                    </Template>
+                                </RadzenGridColumn>
+                                <RadzenGridColumn TItem="Cashflow" Property="PaymentType" Title="Transaction">
+                                    <Template Context="cashflow">
+                                        @cashflow.CashInOut.ToString()
+                                    </Template>
+                                </RadzenGridColumn>
+                                <RadzenGridColumn TItem="Cashflow" Property="TransactionAmount" Title="Amount">
+                                    <Template Context="cashflow">
+                                        @String.Format("{0:#,##0.##}", cashflow.TransactionAmount)
+                                    </Template>
+                                </RadzenGridColumn>
+                            </Columns>
+                        </RadzenGrid>
+                    </RadzenTabsItem>
+                    <RadzenTabsItem Text="Cash">
+                        <RadzenGrid AllowPaging="true" AllowSorting="true" Data="@customer.PaymentReceipts" TItem="PaymentReceiptModel">
+                            <Columns>
+                                <RadzenGridColumn TItem="PaymentReceiptModel" Property="PaidDate" Title="Date">
+                                    <Template Context="cash">
+                                        @String.Format("{0:ddd, MMM d, yyyy}", cash.PaidDate)
+                                    </Template>
+                                </RadzenGridColumn>
+                                <RadzenGridColumn TItem="PaymentReceiptModel" Property="AmountPaid" Title="Cash">
+                                    <Template Context="cash">
+                                        @String.Format("{0:#,##0.##}", cash.AmountPaid)
+                                    </Template>
+                                </RadzenGridColumn>
+                            </Columns>
+                        </RadzenGrid>
+                    </RadzenTabsItem>
+                    <RadzenTabsItem Text="Bills">
+                        <RadzenGrid AllowPaging="true" AllowSorting="true" Data="@customer.Invoices" TItem="InvoiceModel">
+                            <Columns>
+                                <RadzenGridColumn TItem="InvoiceModel" Property="InvoiceDate" Title="Date">
+                                    <Template Context="bill">
+                                        @String.Format("{0:ddd, MMM d, yyyy}", bill.InvoiceDate)
+                                    </Template>
+                                </RadzenGridColumn>
+                                <RadzenGridColumn TItem="InvoiceModel" Property="Amount" Title="Bill">
+                                    <Template Context="bill">
+                                        @String.Format("{0:#,##0.##}", bill.Amount)
+                                    </Template>
+                                </RadzenGridColumn>
+                            </Columns>
+                        </RadzenGrid>
+                    </RadzenTabsItem>
+                </Tabs>
+            </RadzenTabs>
+            @*<RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="Add" Click="@InsertRow" />*@
+        </div>
+    </div>
+}
+
+@code {
+    RadzenGrid<CustomerModel> customersGrid;
+    dynamic _customer;
+    dynamic customer
+    {
+        get
+        {
+            return _customer;
+        }
+        set
+        {
+            if (_customer != value)
+            {
+                _customer = value;
+                StateHasChanged();
+            }
+        }
+    }
+    List<CustomerModel> customers;
+    List<Cashflow> cashflows;
+
+    protected async Task OnRowClick(CustomerModel args)
+    {
+        // customer = args;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        customers = await Http.GetFromJsonAsync<List<CustomerModel>>("/api/customer");  // await GetCustomers();
+        foreach (var cust in customers)
+        {
+            cashflows = new List<Cashflow>();
+
+            foreach (var cash in cust.PaymentReceipts)
+            {
+                var cashflowIn = new Cashflow()
+                {
+                    Customer = cust,
+                    CustomerId = cust.Id,
+                    TransactionDate = cash.PaidDate,
+                    TransactionAmount = cash.AmountPaid,
+                    CashInOut = TransactionType.Cash,
+                };
+
+                cashflows.Add(cashflowIn);
+            }
+
+
+            foreach (var bill in cust.Invoices)
+            {
+                var cashflowOut = new Cashflow()
+                {
+                    Customer = cust,
+                    CustomerId = cust.Id,
+                    TransactionDate = bill.InvoiceDate,
+                    TransactionAmount = bill.Amount,
+                    CashInOut = TransactionType.Bill,
+                };
+
+                cashflows.Add(cashflowOut);
+            }
+
+
+            cust.TotalAmountSettled = cust.TotalAmountSettled.HasValue ? cust.TotalAmountSettled : 0;
+            cust.TotalInvoicedAmount = cust.TotalInvoicedAmount.HasValue ? cust.TotalInvoicedAmount : 0;
+            cust.TotalOutstandingAmount = cust.TotalOutstandingAmount.HasValue ? cust.TotalOutstandingAmount : 0;
+
+            cust.CashFlows = cashflows.OrderByDescending(o => o.TransactionDate).ToList();
+        }
+        customer = customers.FirstOrDefault();
+
+    }
+
+}
