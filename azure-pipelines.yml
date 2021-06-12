@@ -14,7 +14,7 @@ variables:
 
 steps:
 - task: DotNetCoreCLI@2
-  displayName: build,
+  displayName: build
   inputs:
     command: 'build'
     projects: '**/*.csproj'
