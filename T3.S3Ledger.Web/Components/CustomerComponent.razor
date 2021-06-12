@@ -4,6 +4,7 @@
 @inject NavigationManager navigation
 @inject DialogService dialog
 
+
 <h3>Customers List</h3>
 
 @if (customers == null)
@@ -47,7 +48,7 @@ else
 
     protected async Task OnRowClick(CustomerModel args)
     {
-
+        await Task.Run(() => 0);
     }
 
     protected override async Task OnInitializedAsync()
@@ -79,7 +80,17 @@ else
 
     async Task<List<CustomerModel>> GetCustomers()
     {
-        return await Http.GetFromJsonAsync<List<CustomerModel>>("/api/customer");
+        try
+        {
+            var customers = await Http.GetFromJsonAsync<List<CustomerModel>>("/api/customer");
+            return customers;
+        }
+        catch (Exception ex)
+        {
+
+            throw ex;
+        }
+
     }
 
 

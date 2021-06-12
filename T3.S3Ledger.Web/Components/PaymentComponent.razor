@@ -23,7 +23,7 @@ else
             </RadzenGridColumn>
             <RadzenGridColumn TItem="PaymentReceiptModel" Property="PaidDate" Title="Cash Received Date">
                 <Template Context="payment">
-                    @String.Format("{0:ddd, MMM d, yyyy}", payment.PaidDate)
+                    @String.Format("{0:dd/MM/yyyy}", payment.PaidDate)
                 </Template>
             </RadzenGridColumn>
             <RadzenGridColumn TItem="PaymentReceiptModel" Property="AmountPaid" Title="Amount">

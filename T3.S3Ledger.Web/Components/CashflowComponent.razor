@@ -14,7 +14,7 @@ else
     <div class="row">
         <div class="col-md-4">
             <div class="row">
-                <RadzenGrid @ref="customersGrid" ColumnWidth="200px" PagerPosition="PagerPosition.Top" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowSorting="true" Data="@customers" TItem="CustomerModel" @bind-Value="@customer" RowSelect=@(args => OnRowClick(args))>
+                <RadzenGrid @ref="customersGrid" ColumnWidth="200px" PagerPosition="PagerPosition.Bottom" AllowPaging="true" Data="@customers" TItem="CustomerModel" @bind-Value="@customer" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" RowSelect=@(args => OnRowClick(args)) PageSize="18">
                     <Columns>
                         <RadzenGridColumn TItem="CustomerModel" Property="CustomerName" Title="Customer Name" Width="100px">
                             <Template Context="customer">
@@ -58,7 +58,7 @@ else
                             <Columns>
                                 <RadzenGridColumn TItem="Cashflow" Property="TransactionDate" Title="Date">
                                     <Template Context="cashflow">
-                                        @String.Format("{0:ddd, MMM d, yyyy}", cashflow.TransactionDate)
+                                        @String.Format("{0:dd/MM/yyyy}", cashflow.TransactionDate)
                                     </Template>
                                 </RadzenGridColumn>
                                 <RadzenGridColumn TItem="Cashflow" Property="PaymentType" Title="Transaction">
@@ -79,7 +79,7 @@ else
                             <Columns>
                                 <RadzenGridColumn TItem="PaymentReceiptModel" Property="PaidDate" Title="Date">
                                     <Template Context="cash">
-                                        @String.Format("{0:ddd, MMM d, yyyy}", cash.PaidDate)
+                                        @String.Format("{0:dd/MM/yyyy}", cash.PaidDate)
                                     </Template>
                                 </RadzenGridColumn>
                                 <RadzenGridColumn TItem="PaymentReceiptModel" Property="AmountPaid" Title="Cash">
@@ -95,7 +95,7 @@ else
                             <Columns>
                                 <RadzenGridColumn TItem="InvoiceModel" Property="InvoiceDate" Title="Date">
                                     <Template Context="bill">
-                                        @String.Format("{0:ddd, MMM d, yyyy}", bill.InvoiceDate)
+                                        @String.Format("{0:dd/MM/yyyy}", bill.InvoiceDate)
                                     </Template>
                                 </RadzenGridColumn>
                                 <RadzenGridColumn TItem="InvoiceModel" Property="Amount" Title="Bill">
@@ -131,7 +131,7 @@ else
             }
         }
     }
-    List<CustomerModel> customers;
+    IEnumerable<CustomerModel> customers;
     List<Cashflow> cashflows;
 
     protected async Task OnRowClick(CustomerModel args)
@@ -142,7 +142,7 @@ else
     protected override async Task OnInitializedAsync()
     {
 
-        customers = await Http.GetFromJsonAsync<List<CustomerModel>>("/api/customer");  // await GetCustomers();
+        customers = await Http.GetFromJsonAsync<IEnumerable<CustomerModel>>("/api/customer/include");  // await GetCustomers();
         foreach (var cust in customers)
         {
             cashflows = new List<Cashflow>();

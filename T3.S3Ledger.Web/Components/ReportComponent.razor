@@ -7,22 +7,36 @@
 <div class="row">
     <div class="col-lg-8 col-sm-12 p-4">
         <RadzenChart>
-            <RadzenColumnSeries Data="@bills" CategoryProperty="Date" Title="Total Bills" LineType="LineType.Dashed" ValueProperty="Revenue" />
-            <RadzenColumnSeries Data="@cash" CategoryProperty="Date" Title="Total Cash" ValueProperty="Revenue" />
-            <RadzenColumnOptions Radius="10" />
+            <RadzenColumnSeries Data="@bills" CategoryProperty="Date" Title="Total Bills" LineType="LineType.Dotted" ValueProperty="BillAmount" />
+            <RadzenColumnSeries Data="@payments" CategoryProperty="Date" Title="Total Cash" ValueProperty="Receipt" />
+            <RadzenColumnSeries Data="@outstandings" CategoryProperty="Date" Title="Total Outstanding" ValueProperty="Amount" />
+            <RadzenColumnOptions Radius="5" Margin="4" />
             <RadzenCategoryAxis Padding="30" FormatString="{0:MMM}" />
             <RadzenValueAxis FormatString="{0:#,##0.##}">
                 <RadzenGridLines Visible="true" />
                 <RadzenAxisTitle Text="Amount (Rs.)" />
             </RadzenValueAxis>
+            @*<RadzenBarOptions Radius="5" >*@
         </RadzenChart>
     </div>
 </div>
 @code {
-    class DataItem
+    private class Bill
     {
         public DateTime Date { get; set; }
-        public decimal Revenue { get; set; }
+        public decimal BillAmount { get; set; }
+    }
+
+    private class PaymentReceipt
+    {
+        public DateTime Date { get; set; }
+        public decimal Receipt { get; set; }
+    }
+
+    private class OutstandingBalance
+    {
+        public DateTime Date { get; set; }
+        public decimal Amount { get; set; }
     }
 
     string FormatAsUSD(object value)
@@ -30,130 +44,195 @@
         return ((double)value).ToString();
     }
 
-    DataItem[] cash = new DataItem[] {
-        new DataItem
+    //IEnumerable<>
+
+    Bill[] bills = new Bill[] {
+        new  Bill
         {
-            Date = DateTime.Parse("2019-01-01"),
-            Revenue = 234000
+            Date = DateTime.Parse("2021-01-01"),
+            BillAmount = 234000
         },
-        new DataItem
+        new  Bill
         {
-            Date = DateTime.Parse("2019-02-01"),
-            Revenue = 269000
+            Date = DateTime.Parse("2021-02-01"),
+            BillAmount = 269000
         },
-        new DataItem
+        new  Bill
         {
-            Date = DateTime.Parse("2019-03-01"),
-            Revenue = 233000
+            Date = DateTime.Parse("2021-03-01"),
+            BillAmount = 233000
         },
-        new DataItem
+        new  Bill
         {
-            Date = DateTime.Parse("2019-04-01"),
-            Revenue = 244000
+            Date = DateTime.Parse("2021-04-01"),
+            BillAmount = 244000
         },
-        new DataItem
+        new  Bill
         {
-            Date = DateTime.Parse("2019-05-01"),
-            Revenue = 214000
+            Date = DateTime.Parse("2021-05-01"),
+            BillAmount = 214000
         },
-        new DataItem
+        new  Bill
         {
-            Date = DateTime.Parse("2019-06-01"),
-            Revenue = 253000
+            Date = DateTime.Parse("2021-06-01"),
+            BillAmount = 253000
         },
-        new DataItem
+        new  Bill
         {
-            Date = DateTime.Parse("2019-07-01"),
-            Revenue = 274000
+            Date = DateTime.Parse("2021-07-01"),
+            BillAmount = 274000
         },
-        new DataItem
+        new  Bill
         {
-            Date = DateTime.Parse("2019-08-01"),
-            Revenue = 284000
+            Date = DateTime.Parse("2021-08-01"),
+            BillAmount = 284000
         },
-        new DataItem
+        new  Bill
         {
-            Date = DateTime.Parse("2019-09-01"),
-            Revenue = 273000
+            Date = DateTime.Parse("2021-09-01"),
+            BillAmount = 273000
         },
-        new DataItem
+        new  Bill
         {
-            Date = DateTime.Parse("2019-10-01"),
-            Revenue = 282000
+            Date = DateTime.Parse("2021-10-01"),
+            BillAmount = 282000
         },
-        new DataItem
+        new  Bill
         {
-            Date = DateTime.Parse("2019-11-01"),
-            Revenue = 289000
+            Date = DateTime.Parse("2021-11-01"),
+            BillAmount = 289000
         },
-        new DataItem
+        new  Bill
         {
-            Date = DateTime.Parse("2019-12-01"),
-            Revenue = 294000
+            Date = DateTime.Parse("2021-12-01"),
+            BillAmount = 294000
         }
     };
 
-    DataItem[] bills = new DataItem[] {
-        new DataItem
+    PaymentReceipt[] payments = new PaymentReceipt[] {
+        new PaymentReceipt
         {
-            Date = DateTime.Parse("2019-01-01"),
-            Revenue = 334000
+            Date = DateTime.Parse("2021-01-01"),
+            Receipt = 334000
         },
-        new DataItem
+        new PaymentReceipt
         {
-            Date = DateTime.Parse("2019-02-01"),
-            Revenue = 369000
+            Date = DateTime.Parse("2021-02-01"),
+            Receipt = 369000
         },
-        new DataItem
+        new PaymentReceipt
         {
-            Date = DateTime.Parse("2019-03-01"),
-            Revenue = 333000
+            Date = DateTime.Parse("2021-03-01"),
+            Receipt = 333000
         },
-        new DataItem
+        new PaymentReceipt
         {
-            Date = DateTime.Parse("2019-04-01"),
-            Revenue = 344000
+            Date = DateTime.Parse("2021-04-01"),
+            Receipt = 344000
         },
-        new DataItem
+        new PaymentReceipt
         {
-            Date = DateTime.Parse("2019-05-01"),
-            Revenue = 314000
+            Date = DateTime.Parse("2021-05-01"),
+            Receipt = 314000
         },
-        new DataItem
+        new PaymentReceipt
         {
-            Date = DateTime.Parse("2019-06-01"),
-            Revenue = 353000
+            Date = DateTime.Parse("2021-06-01"),
+            Receipt = 353000
         },
-        new DataItem
+        new PaymentReceipt
         {
-            Date = DateTime.Parse("2019-07-01"),
-            Revenue = 374000
+            Date = DateTime.Parse("2021-07-01"),
+            Receipt = 374000
         },
-        new DataItem
+        new PaymentReceipt
         {
-            Date = DateTime.Parse("2019-08-01"),
-            Revenue = 384000
+            Date = DateTime.Parse("2021-08-01"),
+            Receipt = 384000
         },
-        new DataItem
+        new PaymentReceipt
         {
-            Date = DateTime.Parse("2019-09-01"),
-            Revenue = 373000
+            Date = DateTime.Parse("2021-09-01"),
+            Receipt = 373000
         },
-        new DataItem
+        new PaymentReceipt
         {
-            Date = DateTime.Parse("2019-10-01"),
-            Revenue = 382000
+            Date = DateTime.Parse("2021-10-01"),
+            Receipt = 382000
         },
-        new DataItem
+        new PaymentReceipt
         {
-            Date = DateTime.Parse("2019-11-01"),
-            Revenue = 389000
+            Date = DateTime.Parse("2021-11-01"),
+            Receipt = 389000
         },
-        new DataItem
+        new PaymentReceipt
         {
-            Date = DateTime.Parse("2019-12-01"),
-            Revenue = 394000
+            Date = DateTime.Parse("2021-12-01"),
+            Receipt = 394000
         }
+    };
+
+    OutstandingBalance[] outstandings = new OutstandingBalance[] {
+   new OutstandingBalance
+    {
+        Date = DateTime.Parse("2021-01-01"),
+        Amount = 33400
+    },
+    new OutstandingBalance
+    {
+        Date = DateTime.Parse("2021-02-01"),
+        Amount = 36900
+    },
+    new OutstandingBalance
+    {
+        Date = DateTime.Parse("2021-03-01"),
+        Amount = 33000
+    },
+    new OutstandingBalance
+    {
+        Date = DateTime.Parse("2021-04-01"),
+        Amount = 34000
+    },
+    new OutstandingBalance
+    {
+        Date = DateTime.Parse("2021-05-01"),
+        Amount = 31000
+    },
+    new OutstandingBalance
+    {
+        Date = DateTime.Parse("2021-06-01"),
+        Amount = 35000
+    },
+    new OutstandingBalance
+    {
+        Date = DateTime.Parse("2021-07-01"),
+        Amount = 37000
+    },
+    new OutstandingBalance
+    {
+        Date = DateTime.Parse("2021-08-01"),
+        Amount = 38400
+    },
+    new OutstandingBalance
+    {
+        Date = DateTime.Parse("2021-09-01"),
+        Amount = 37000
+    },
+    new OutstandingBalance
+    {
+        Date = DateTime.Parse("2021-10-01"),
+        Amount = 32000
+    },
+    new OutstandingBalance
+    {
+        Date = DateTime.Parse("2021-11-01"),
+        Amount = 38000
+    },
+    new OutstandingBalance
+    {
+        Date = DateTime.Parse("2021-12-01"),
+        Amount = 34000
+    }
     };
 }
 

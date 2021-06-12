@@ -13,47 +13,37 @@
 else
 {
     <RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="Add" Click="@InsertRow" />
-    <RadzenGrid @ref="invoicesGrid" PagerPosition="PagerPosition.TopAndBottom" AllowFiltering="true" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" AllowPaging="true" PageSize="12" RowSelect=@(args => OnRowClick(args)) AllowSorting="true" Data="@invoices" TItem="InvoiceModel" ColumnWidth="100px" Context="invoice">
+    <RadzenDataGrid @ref="invoicesGrid" PagerPosition="PagerPosition.TopAndBottom" AllowSorting="true" AllowVirtualization="true" AllowPaging="true" PageSize="16" AllowFiltering="true" RowSelect=@(args => OnRowClick(args)) Data="@invoices" TItem="InvoiceModel" Context="invoice" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
         <Columns>
-            <RadzenGridColumn TItem="InvoiceModel" Title="Customer Name" Property="Customer.CustomerName">
+            <RadzenDataGridColumn TItem="InvoiceModel" Title="Customer Name" Property="Customer.CustomerName">
                 <Template Context="invoice">
                     @invoice.Customer?.CustomerName
                 </Template>
-            </RadzenGridColumn>
-            <RadzenGridColumn TItem="InvoiceModel" Property="InvoiceDate" Title="Date">
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="InvoiceModel" Property="InvoiceDate" Title="Date">
                 <Template Context="invoice">
-                    @String.Format("{0:ddd, MMM d, yyyy}", invoice.InvoiceDate)
+                    @String.Format("{0:dd/MM/yyyy}", invoice.InvoiceDate)
                 </Template>
-            </RadzenGridColumn>
-            <RadzenGridColumn TItem="InvoiceModel" Property="Amount" Title="Invoice Amount" TextAlign="TextAlign.Right">
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="InvoiceModel" Property="Amount" Title="Invoice Amount" TextAlign="TextAlign.Right">
                 <Template Context="invoice">
                     @String.Format("{0:#,##0.##}", invoice.Amount)
                 </Template>
-            </RadzenGridColumn>
-            @*<RadzenGridColumn TItem="InvoiceModel" Context="invoice" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="100px">
-                    <Template Context="invoice">
-                        <RadzenButton Icon="edit" Size="ButtonSize.Small" Click="@(args => EditRow(invoice))">
-                        </RadzenButton>
-                    </Template>
-                </RadzenGridColumn>*@
-            <RadzenGridColumn TItem="InvoiceModel" Context="invoice" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="50px">
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="InvoiceModel" Context="invoice" TextAlign="TextAlign.Center" Width="50px">
                 <Template Context="invoice">
                     <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Size="ButtonSize.Small"
                                   Click="@(args => dialog.Confirm("Are you sure?", "Delete Bills", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" }))">
                     </RadzenButton>
                 </Template>
-            </RadzenGridColumn>
+            </RadzenDataGridColumn>
         </Columns>
-    </RadzenGrid>
+    </RadzenDataGrid>
 }
 
 @code {
-    RadzenGrid<InvoiceModel> invoicesGrid;
+    RadzenDataGrid<InvoiceModel> invoicesGrid;
     List<InvoiceModel> invoices;
-    PayMode currentPayMode;
-    InvoiceStatus currentPayStatus;
-
-    CustomerModel customer;
     InvoiceModel selectedInvoice;
 
 
@@ -82,10 +72,6 @@ else
     protected override async Task OnInitializedAsync()
     {
         invoices = await GetInvoices();
-        foreach (var invoice in invoices)
-        {
-            invoice.Customer = await Http.GetFromJsonAsync<CustomerModel>("/api/customer/" + invoice.CustomerId);
-        }
         dialog.OnClose += Close;
     }
 

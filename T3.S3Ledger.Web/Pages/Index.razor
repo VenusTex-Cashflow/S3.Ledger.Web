@@ -58,7 +58,7 @@ else
     {
         try
         {
-            customers = await Http.GetFromJsonAsync<List<CustomerModel>>("/api/customer");
+            customers = await Http.GetFromJsonAsync<List<CustomerModel>>("/api/customer/include");
             overdueCustomers = new List<CustomerModel>();
             foreach (var cust in customers)
             {
