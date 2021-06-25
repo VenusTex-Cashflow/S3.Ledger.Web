@@ -13,7 +13,7 @@
 else
 {
     <RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="Add" Click="@InsertRow" />
-    <RadzenDataGrid @ref="invoicesGrid" PagerPosition="PagerPosition.TopAndBottom" AllowSorting="true" AllowVirtualization="true" AllowPaging="true" PageSize="16" AllowFiltering="true" RowSelect=@(args => OnRowClick(args)) Data="@invoices" TItem="InvoiceModel" Context="invoice" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+    <RadzenDataGrid @ref="invoicesGrid" PagerPosition="PagerPosition.TopAndBottom" AllowSorting="true" AllowVirtualization="true" AllowPaging="true" PageSize="16" AllowFiltering="true" RowSelect=@(args => OnRowClick(args)) Data="@invoices" TItem="InvoiceModel" Context="invoice" ColumnWidth="100px" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
         <Columns>
             <RadzenDataGridColumn TItem="InvoiceModel" Title="Customer Name" Property="Customer.CustomerName">
                 <Template Context="invoice">
@@ -30,13 +30,19 @@ else
                     @String.Format("{0:#,##0.##}", invoice.Amount)
                 </Template>
             </RadzenDataGridColumn>
-            <RadzenDataGridColumn TItem="InvoiceModel" Context="invoice" TextAlign="TextAlign.Center" Width="50px">
+            <RadzenDataGridColumn TItem="InvoiceModel" Context="invoice" TextAlign="TextAlign.Center" Width="50px" Filterable="false" Sortable="false">
                 <Template Context="invoice">
                     <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Size="ButtonSize.Small"
                                   Click="@(args => dialog.Confirm("Are you sure?", "Delete Bills", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" }))">
                     </RadzenButton>
                 </Template>
             </RadzenDataGridColumn>
+            <RadzenGridColumn TItem="CustomerModel" Context="customer" Bubble="false" Filterable="false" Sortable="false" TextAlign="TextAlign.Center" Width="50px">
+                <Template Context="customer">
+                    <RadzenButton ButtonStyle="ButtonStyle.Danger" Icon="close" Size="ButtonSize.Small"
+                                  Click=@(args => dialog.Confirm("Are you sure?", "Delete Customer", new ConfirmOptions() { OkButtonText = "Yes", CancelButtonText = "No" })) />
+                </Template>
+            </RadzenGridColumn>
         </Columns>
     </RadzenDataGrid>
 }
@@ -66,7 +72,7 @@ else
 
     protected async Task OnRowClick(InvoiceModel args)
     {
-
+        await Task.Run(() => 0);
     }
 
     protected override async Task OnInitializedAsync()
@@ -92,21 +98,22 @@ else
     {
         if (result)
         {
-            selectedInvoice = (InvoiceModel)invoicesGrid.Value;
+            selectedInvoice = (InvoiceModel)invoicesGrid.Value[0];
             CustomerModel custUpdate;
             if (invoices.Contains(selectedInvoice))
             {
                 await Http.DeleteAsync("/api/invoice/" + selectedInvoice.Id);
                 invoices.Remove(selectedInvoice);
+                await invoicesGrid.Reload();
 
                 // update customer
-                custUpdate = await Http.GetFromJsonAsync<CustomerModel>("/api/customer/" + selectedInvoice.CustomerId);
-                custUpdate.TotalInvoicedAmount = custUpdate.TotalInvoicedAmount.HasValue ? custUpdate.TotalInvoicedAmount : 0;
-                custUpdate.TotalOutstandingAmount = custUpdate.TotalOutstandingAmount.HasValue ? custUpdate.TotalOutstandingAmount : 0;
-                custUpdate.TotalInvoicedAmount -= selectedInvoice.Amount;
-                custUpdate.TotalOutstandingAmount -= selectedInvoice.Amount;
-                await Http.PutAsJsonAsync<CustomerModel>("/api/customer", custUpdate);
-                await invoicesGrid.Reload();
+                //custUpdate = await Http.GetFromJsonAsync<CustomerModel>("/api/customer/" + selectedInvoice.CustomerId);
+                //custUpdate.TotalInvoicedAmount = custUpdate.TotalInvoicedAmount.HasValue ? custUpdate.TotalInvoicedAmount : 0;
+                //custUpdate.TotalOutstandingAmount = custUpdate.TotalOutstandingAmount.HasValue ? custUpdate.TotalOutstandingAmount : 0;
+                //custUpdate.TotalInvoicedAmount -= selectedInvoice.Amount;
+                //custUpdate.TotalOutstandingAmount -= selectedInvoice.Amount;
+                //await Http.PutAsJsonAsync<CustomerModel>("/api/customer", custUpdate);
+
             }
         }
     }
