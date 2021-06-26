@@ -1,0 +1,31 @@
+name: .NET Core Deploy to IIS
+
+on: 
+  push:
+    branches:
+      - "self-hosted"
+
+jobs:
+  build-and-deploy:
+
+    runs-on: self-hosted
+    
+    steps:
+    - uses: actions/checkout@v1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.0.100
+    
+    # dotnet build and publish
+    - name: Build with dotnet
+      run: dotnet build --configuration Release .\dotnet-core-webapp
+
+    - name: dotnet publish 
+      run: |
+        dotnet publish -c Release -o dotnetcorewebapp .\dotnet-core-webapp
+    - name: Deploy to IIS
+      run: |
+        iisreset /stop
+        Copy-Item ./dotnetcorewebapp/* C:/inetpub/wwwroot/dotnetcore-webapp -Recurse -Force
+        iisreset /start
