@@ -13,7 +13,7 @@
 else
 {
     <RadzenButton Icon="add_circle_outline" style="margin-bottom: 10px" Text="Add" Click="@InsertRow" />
-    <RadzenDataGrid @ref="invoicesGrid" PagerPosition="PagerPosition.TopAndBottom" AllowSorting="true" AllowVirtualization="true" AllowPaging="true" PageSize="16" AllowFiltering="true" RowSelect=@(args => OnRowClick(args)) Data="@invoices" TItem="InvoiceModel" Context="invoice" ColumnWidth="100px" FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive">
+    <RadzenDataGrid @ref="invoicesGrid" PagerPosition="PagerPosition.TopAndBottom" AllowSorting="true" AllowVirtualization="true" AllowPaging="true" PageSize="16" RowSelect=@(args => OnRowClick(args)) Data="@invoices" TItem="InvoiceModel" Context="invoice" ColumnWidth="100px">
         <Columns>
             <RadzenDataGridColumn TItem="InvoiceModel" Title="Customer Name" Property="Customer.CustomerName">
                 <Template Context="invoice">
